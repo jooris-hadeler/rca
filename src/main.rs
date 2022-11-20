@@ -4,9 +4,9 @@ mod error;
 mod prelude;
 mod sbox;
 
+use crate::prelude::*;
 use std::time::Instant;
 use structopt::StructOpt;
-use crate::prelude::*;
 
 fn main() -> Result<()> {
     let opt = Options::from_args();
@@ -38,7 +38,10 @@ fn main() -> Result<()> {
 
             let key = maybe_key.unwrap();
             if key.len() < 128 {
-                return Err(Error::Generic(format!("key of size {} is to small", key.len())));
+                return Err(Error::Generic(format!(
+                    "key of size {} is to small",
+                    key.len()
+                )));
             }
 
             crypto::encrypt(&mut data, &key, rounds);
@@ -76,7 +79,10 @@ fn main() -> Result<()> {
 
             let key = maybe_key.unwrap();
             if key.len() < 128 {
-                return Err(Error::Generic(format!("key of size {} is to small", key.len())));
+                return Err(Error::Generic(format!(
+                    "key of size {} is to small",
+                    key.len()
+                )));
             }
 
             crypto::decrypt(&mut data, &key, rounds);
@@ -92,10 +98,7 @@ fn main() -> Result<()> {
         }
 
         // keygen subcommand
-        Options::Keygen {
-            size,
-            output
-        } => {
+        Options::Keygen { size, output } => {
             println!("Generating key of size {}", size);
 
             let key = crypto::generate_key(size);

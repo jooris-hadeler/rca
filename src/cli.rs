@@ -52,5 +52,5 @@ pub enum Options {
         /// Output file
         #[structopt(short, long, default_value = "a.key")]
         output: String,
-    }
+    },
 }

@@ -1,6 +1,6 @@
-use rand::{RngCore, SeedableRng};
 use crate::sbox::*;
 use rand::rngs::StdRng;
+use rand::{RngCore, SeedableRng};
 
 /// This substitutes a mutable buffer
 ///
@@ -162,9 +162,11 @@ mod test {
 
     #[test]
     fn test_xor() {
-        let original = vec![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+        let original = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
         let mut data = original.clone();
-        let key = vec![99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114];
+        let key = vec![
+            99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114,
+        ];
 
         xor(&mut data, &key);
 
