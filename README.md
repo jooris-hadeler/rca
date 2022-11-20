@@ -18,7 +18,7 @@ $ cargo build --release
 ## Usage
 ```bash
 $ rca
-rca 0.1.0
+rca 0.2.0
 A simple AES-ish crypto algorithm.
 
 USAGE:
@@ -29,9 +29,10 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    decrypt    Subcommand options for decryption
-    encrypt    Subcommand options for encryption
+    decrypt    Decrypt files
+    encrypt    Encrypt files
     help       Prints this message or the help of the given subcommand(s)
+    keygen     Generate keys
 ```
 
 ## Contributing
