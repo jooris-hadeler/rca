@@ -8,7 +8,7 @@ In order of building RCA you need the following:
 - Git
 
 ## Building
-You can easily build RCA by running theses commands:
+You can easily build RCA by running these commands:
 ```bash
 $ git clone https://github.com/jooris-hadeler/rca
 $ cd rca
