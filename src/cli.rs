@@ -43,4 +43,15 @@ pub enum Options {
         #[structopt(short, long, default_value = "a.out")]
         output: String,
     },
+
+    /// Subcommand keygen
+    #[structopt(name = "keygen")]
+    Keygen {
+        /// Size of the key
+        size: usize,
+
+        /// Output file
+        #[structopt(short, long, default_value = "a.key")]
+        output: String,
+    }
 }

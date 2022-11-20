@@ -5,10 +5,8 @@ mod prelude;
 mod sbox;
 
 use std::time::Instant;
-use crate::cli::Options;
-use crate::error::Error;
-use crate::prelude::*;
 use structopt::StructOpt;
+use crate::prelude::*;
 
 fn main() -> Result<()> {
     let opt = Options::from_args();
@@ -54,6 +52,7 @@ fn main() -> Result<()> {
 
             Ok(())
         }
+
         // decrypt subcommand
         Options::Decrypt {
             input: input_path,
@@ -83,6 +82,25 @@ fn main() -> Result<()> {
             crypto::decrypt(&mut data, &key, rounds);
 
             let result = std::fs::write(output_path, data);
+            if result.is_err() {
+                return Err(Error::IOError(result.unwrap_err()));
+            }
+
+            println!("Finished in {} ms", instant.elapsed().as_millis());
+
+            Ok(())
+        }
+
+        // keygen subcommand
+        Options::Keygen {
+            size,
+            output
+        } => {
+            println!("Generating key of size {}", size);
+
+            let key = crypto::generate_key(size);
+
+            let result = std::fs::write(output, key);
             if result.is_err() {
                 return Err(Error::IOError(result.unwrap_err()));
             }

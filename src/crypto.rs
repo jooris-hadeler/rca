@@ -1,4 +1,6 @@
+use rand::{RngCore, SeedableRng};
 use crate::sbox::*;
+use rand::rngs::StdRng;
 
 /// This substitutes a mutable buffer
 ///
@@ -115,6 +117,19 @@ pub fn decrypt(data: &mut Vec<u8>, key: &Vec<u8>, rounds: usize) {
         xor(data, &round_key);
         invert_substitute(data);
     }
+}
+
+/// This function generates a new key. It does this by using the StdRng which
+/// uses 12 rounds of ChaCha to generate random numbers.
+///
+/// # Arguments
+/// * `size` - the size of the key
+pub fn generate_key(size: usize) -> Vec<u8> {
+    let mut key = vec![0; size];
+
+    StdRng::from_entropy().fill_bytes(key.as_mut_slice());
+
+    key
 }
 
 #[cfg(test)]
