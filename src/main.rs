@@ -5,9 +5,9 @@ mod prelude;
 mod sbox;
 
 use crate::prelude::*;
+use colored::Colorize;
 use std::time::Instant;
 use structopt::StructOpt;
-use colored::Colorize;
 
 fn main() {
     let result = run();
