@@ -7,13 +7,21 @@ mod sbox;
 use crate::prelude::*;
 use std::time::Instant;
 use structopt::StructOpt;
+use colored::Colorize;
 
-fn main() -> Result<()> {
+fn main() {
+    let result = run();
+
+    if result.is_err() {
+        println!("{} {}", "error:".bold().red(), result.unwrap_err());
+    }
+}
+
+fn run() -> Result<()> {
     let opt = Options::from_args();
 
     let instant = Instant::now();
 
-    // match the subcommand
     match opt {
         // encrypt subcommand
         Options::Encrypt {
