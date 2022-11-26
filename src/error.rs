@@ -2,9 +2,9 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Generic Error
-    #[error("Generic Error: {0}")]
-    Generic(String),
+    /// Key too short error
+    #[error("Key of length {0} is too short")]
+    KeyTooShort(usize),
 
     #[error(transparent)]
     IOError(std::io::Error),

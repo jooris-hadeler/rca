@@ -28,10 +28,7 @@ fn main() -> Result<()> {
             let key = std::fs::read(key_path)?;
 
             if key.len() < 128 {
-                return Err(Error::Generic(format!(
-                    "key of size {} is to small",
-                    key.len()
-                )));
+                return Err(Error::KeyTooShort(key.len()));
             }
 
             crypto::encrypt(&mut data, &key, rounds);
@@ -56,10 +53,7 @@ fn main() -> Result<()> {
             let key = std::fs::read(key_path)?;
 
             if key.len() < 128 {
-                return Err(Error::Generic(format!(
-                    "key of size {} is to small",
-                    key.len()
-                )));
+                return Err(Error::KeyTooShort(key.len()));
             }
 
             crypto::decrypt(&mut data, &key, rounds);
@@ -74,6 +68,10 @@ fn main() -> Result<()> {
         // keygen subcommand
         Options::Keygen { size, output } => {
             println!("Generating key of size {}", size);
+
+            if size < 128 {
+                return Err(Error::KeyTooShort(size));
+            }
 
             let key = crypto::generate_key(size);
 
