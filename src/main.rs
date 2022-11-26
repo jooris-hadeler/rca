@@ -24,19 +24,9 @@ fn main() -> Result<()> {
         } => {
             println!("Encrypting {} with {}", input_path, key_path);
 
-            let maybe_data = std::fs::read(input_path);
-            if maybe_data.is_err() {
-                return Err(Error::IOError(maybe_data.unwrap_err()));
-            }
+            let mut data = std::fs::read(input_path)?;
+            let key = std::fs::read(key_path)?;
 
-            let mut data = maybe_data.unwrap();
-
-            let maybe_key = std::fs::read(key_path);
-            if maybe_key.is_err() {
-                return Err(Error::IOError(maybe_key.unwrap_err()));
-            }
-
-            let key = maybe_key.unwrap();
             if key.len() < 128 {
                 return Err(Error::Generic(format!(
                     "key of size {} is to small",
@@ -46,10 +36,7 @@ fn main() -> Result<()> {
 
             crypto::encrypt(&mut data, &key, rounds);
 
-            let result = std::fs::write(output_path, data);
-            if result.is_err() {
-                return Err(Error::IOError(result.unwrap_err()));
-            }
+            std::fs::write(output_path, data)?;
 
             println!("Finished in {} ms", instant.elapsed().as_millis());
 
@@ -65,19 +52,9 @@ fn main() -> Result<()> {
         } => {
             println!("Decrypting {} with {}", input_path, key_path);
 
-            let maybe_data = std::fs::read(input_path);
-            if maybe_data.is_err() {
-                return Err(Error::IOError(maybe_data.unwrap_err()));
-            }
+            let mut data = std::fs::read(input_path)?;
+            let key = std::fs::read(key_path)?;
 
-            let mut data = maybe_data.unwrap();
-
-            let maybe_key = std::fs::read(key_path);
-            if maybe_key.is_err() {
-                return Err(Error::IOError(maybe_key.unwrap_err()));
-            }
-
-            let key = maybe_key.unwrap();
             if key.len() < 128 {
                 return Err(Error::Generic(format!(
                     "key of size {} is to small",
@@ -87,10 +64,7 @@ fn main() -> Result<()> {
 
             crypto::decrypt(&mut data, &key, rounds);
 
-            let result = std::fs::write(output_path, data);
-            if result.is_err() {
-                return Err(Error::IOError(result.unwrap_err()));
-            }
+            std::fs::write(output_path, data)?;
 
             println!("Finished in {} ms", instant.elapsed().as_millis());
 
@@ -103,10 +77,7 @@ fn main() -> Result<()> {
 
             let key = crypto::generate_key(size);
 
-            let result = std::fs::write(output, key);
-            if result.is_err() {
-                return Err(Error::IOError(result.unwrap_err()));
-            }
+            std::fs::write(output, key)?;
 
             println!("Finished in {} ms", instant.elapsed().as_millis());
 
