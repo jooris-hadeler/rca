@@ -19,7 +19,7 @@ pub enum Options {
         key: String,
 
         /// Output file
-        #[structopt(short, long, default_value = "a.out")]
+        #[structopt(short, long, default_value = "a.enc")]
         output: String,
     },
 
@@ -39,7 +39,7 @@ pub enum Options {
         key: String,
 
         /// Output file
-        #[structopt(short, long, default_value = "a.out")]
+        #[structopt(short, long, default_value = "a.dec")]
         output: String,
     },
 

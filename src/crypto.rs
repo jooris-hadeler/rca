@@ -3,6 +3,7 @@ use std::io::{BufReader, BufWriter, Read, Write};
 
 use crate::prelude::*;
 use crate::sbox::*;
+use indicatif::ProgressBar;
 use rand::rngs::StdRng;
 use rand::{RngCore, SeedableRng};
 
@@ -111,6 +112,7 @@ pub fn encrypt(
     rounds: usize,
 ) -> Result<()> {
     let mut keys = Vec::new();
+    let pb = ProgressBar::new(input_size as u64);
 
     // precalculate all round keys
     for round in 0..rounds {
@@ -134,6 +136,7 @@ pub fn encrypt(
 
         buf = [0; CHUNK_SIZE];
         bytes_read += n;
+        pb.inc(n as u64);
     }
 
     Ok(())
@@ -155,6 +158,7 @@ pub fn decrypt(
     rounds: usize,
 ) -> Result<()> {
     let mut keys = Vec::new();
+    let pb = ProgressBar::new(input_size as u64);
 
     for round in 0..rounds {
         keys.push(key_expansion(key, rounds - round));
@@ -177,6 +181,7 @@ pub fn decrypt(
 
         buf = [0; CHUNK_SIZE];
         bytes_read += n;
+        pb.inc(n as u64);
     }
 
     Ok(())
