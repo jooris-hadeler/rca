@@ -3,9 +3,9 @@ mod crypto;
 mod error;
 mod prelude;
 mod sbox;
+mod log;
 
 use crate::prelude::*;
-use colored::Colorize;
 use std::time::Instant;
 use structopt::StructOpt;
 
@@ -13,7 +13,7 @@ fn main() {
     let result = run();
 
     if result.is_err() {
-        println!("{} {}", "error:".bold().red(), result.unwrap_err());
+        error!("{}", result.unwrap_err());
     }
 }
 
@@ -30,7 +30,7 @@ fn run() -> Result<()> {
             output: output_path,
             rounds,
         } => {
-            println!("Encrypting {} with {}", input_path, key_path);
+            info!("Encrypting {} with {}", input_path, key_path);
 
             let mut data = std::fs::read(input_path)?;
             let key = std::fs::read(key_path)?;
@@ -43,7 +43,7 @@ fn run() -> Result<()> {
 
             std::fs::write(output_path, data)?;
 
-            println!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {} ms", instant.elapsed().as_millis());
 
             Ok(())
         }
@@ -55,7 +55,7 @@ fn run() -> Result<()> {
             output: output_path,
             rounds,
         } => {
-            println!("Decrypting {} with {}", input_path, key_path);
+            info!("Decrypting {} with {}", input_path, key_path);
 
             let mut data = std::fs::read(input_path)?;
             let key = std::fs::read(key_path)?;
@@ -68,24 +68,24 @@ fn run() -> Result<()> {
 
             std::fs::write(output_path, data)?;
 
-            println!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {} ms", instant.elapsed().as_millis());
 
             Ok(())
         }
 
         // keygen subcommand
         Options::Keygen { size, output } => {
-            println!("Generating key of size {}", size);
+            info!("Generating key of size {}", size);
 
             if size < 128 {
-                return Err(Error::KeyTooShort(size));
+                warn!("A key of length {} is too short to be used with rca", size);
             }
 
             let key = crypto::generate_key(size);
 
             std::fs::write(output, key)?;
 
-            println!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {} ms", instant.elapsed().as_millis());
 
             Ok(())
         }
