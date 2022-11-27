@@ -1,12 +1,18 @@
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Read, Write};
+
+use crate::prelude::*;
 use crate::sbox::*;
 use rand::rngs::StdRng;
 use rand::{RngCore, SeedableRng};
+
+const CHUNK_SIZE: usize = 16;
 
 /// This substitutes a mutable buffer
 ///
 /// # Arguments
 /// * `data` - the mutable buffer
-fn substitute(data: &mut Vec<u8>) {
+fn substitute(data: &mut [u8]) {
     for i in 0..data.len() {
         data[i] = SUBSTITUTION_BOX[data[i] as usize];
     }
@@ -16,7 +22,7 @@ fn substitute(data: &mut Vec<u8>) {
 ///
 /// # Arguments
 /// * `data` - the mutable buffer
-fn invert_substitute(data: &mut Vec<u8>) {
+fn invert_substitute(data: &mut [u8]) {
     for i in 0..data.len() {
         data[i] = INVERSE_SUBSTITUTION_BOX[data[i] as usize];
     }
@@ -27,9 +33,9 @@ fn invert_substitute(data: &mut Vec<u8>) {
 /// # Arguments
 /// * `data` - the mutable buffer
 /// * `key` - the key buffer to xor with
-fn xor(data: &mut Vec<u8>, key: &Vec<u8>) {
+fn xor(data: &mut [u8], key: &Vec<u8>, offset: usize) {
     for i in 0..data.len() {
-        data[i] ^= key[i % key.len()];
+        data[i] ^= key[(offset + i) % key.len()];
     }
 }
 
@@ -92,31 +98,88 @@ fn key_expansion(key: &Vec<u8>, round: usize) -> Vec<u8> {
 /// This function encrypts data
 ///
 /// # Arguments
-/// * `data` - the buffer of data to encrypt
+/// * `input` - a mutable BufReader to read from
+/// * `input_size` - the size of the input data
+/// * `output` - a mutable BufWriter to write to
 /// * `key` - the key to encrypt with
 /// * `rounds` - the amount of rounds to use
-pub fn encrypt(data: &mut Vec<u8>, key: &Vec<u8>, rounds: usize) {
-    for round in 0..rounds {
-        let round_key = key_expansion(key, round + 1);
+pub fn encrypt(
+    input: &mut BufReader<File>,
+    input_size: usize,
+    output: &mut BufWriter<File>,
+    key: &Vec<u8>,
+    rounds: usize,
+) -> Result<()> {
+    let mut keys = Vec::new();
 
-        substitute(data);
-        xor(data, &round_key);
+    // precalculate all round keys
+    for round in 0..rounds {
+        keys.push(key_expansion(key, round + 1));
     }
+
+    let mut bytes_read = 0;
+    let mut buf: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
+
+    while bytes_read < input_size {
+        let n = input.read(&mut buf)?;
+        let chunk_size = std::cmp::min(input_size - bytes_read, CHUNK_SIZE);
+
+        // apply every round key
+        for round_key in keys.iter() {
+            substitute(&mut buf);
+            xor(&mut buf[..chunk_size], &round_key, bytes_read);
+        }
+
+        output.write(&buf[..chunk_size])?;
+
+        buf = [0; CHUNK_SIZE];
+        bytes_read += n;
+    }
+
+    Ok(())
 }
 
 /// This function decrypts data
 ///
 /// # Arguments
-/// * `data` - the buffer of data to encrypt
+/// * `input` - a mutable BufReader to read from
+/// * `input_size` - the size of the input data
+/// * `output` - a mutable BufWriter to write to
 /// * `key` - the key to decrypt with
 /// * `rounds` - the amount of rounds to use
-pub fn decrypt(data: &mut Vec<u8>, key: &Vec<u8>, rounds: usize) {
-    for round in 0..rounds {
-        let round_key = key_expansion(key, rounds - round);
+pub fn decrypt(
+    input: &mut BufReader<File>,
+    input_size: usize,
+    output: &mut BufWriter<File>,
+    key: &Vec<u8>,
+    rounds: usize,
+) -> Result<()> {
+    let mut keys = Vec::new();
 
-        xor(data, &round_key);
-        invert_substitute(data);
+    for round in 0..rounds {
+        keys.push(key_expansion(key, rounds - round));
     }
+
+    let mut bytes_read = 0;
+    let mut buf: [u8; CHUNK_SIZE] = [0; CHUNK_SIZE];
+
+    while bytes_read < input_size {
+        let n = input.read(&mut buf)?;
+        let chunk_size = std::cmp::min(input_size - bytes_read, CHUNK_SIZE);
+
+        // apply every round key
+        for round_key in keys.iter() {
+            xor(&mut buf[..chunk_size], round_key, bytes_read);
+            invert_substitute(&mut buf);
+        }
+
+        output.write(&buf[..chunk_size])?;
+
+        buf = [0; CHUNK_SIZE];
+        bytes_read += n;
+    }
+
+    Ok(())
 }
 
 /// This function generates a new key. It does this by using the StdRng which
@@ -168,11 +231,11 @@ mod test {
             99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114,
         ];
 
-        xor(&mut data, &key);
+        xor(&mut data, &key, 0);
 
         assert_ne!(original, data, "xor did nothing");
 
-        xor(&mut data, &key);
+        xor(&mut data, &key, 0);
 
         assert_eq!(data, original, "xor did not work correctly");
     }

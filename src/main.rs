@@ -1,12 +1,16 @@
 mod cli;
 mod crypto;
 mod error;
+mod log;
 mod prelude;
 mod sbox;
-mod log;
 
 use crate::prelude::*;
-use std::time::Instant;
+use std::{
+    fs::{File, OpenOptions},
+    io::{BufReader, BufWriter},
+    time::Instant,
+};
 use structopt::StructOpt;
 
 fn main() {
@@ -32,16 +36,26 @@ fn run() -> Result<()> {
         } => {
             info!("Encrypting {} with {}", input_path, key_path);
 
-            let mut data = std::fs::read(input_path)?;
-            let key = std::fs::read(key_path)?;
+            // Setup buffered reader and writer
+            let input_file = File::open(input_path)?;
+            let input_length = input_file.metadata()?.len() as usize;
+            let mut buf_reader = BufReader::new(input_file);
 
+            let output_file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(output_path)?;
+            let mut buf_writer = BufWriter::new(output_file);
+
+            // Read in key
+            let key = std::fs::read(key_path)?;
             if key.len() < 128 {
                 return Err(Error::KeyTooShort(key.len()));
             }
 
-            crypto::encrypt(&mut data, &key, rounds);
-
-            std::fs::write(output_path, data)?;
+            // Encrypt in chunks
+            crypto::encrypt(&mut buf_reader, input_length, &mut buf_writer, &key, rounds)?;
 
             info!("Finished in {} ms", instant.elapsed().as_millis());
 
@@ -57,16 +71,26 @@ fn run() -> Result<()> {
         } => {
             info!("Decrypting {} with {}", input_path, key_path);
 
-            let mut data = std::fs::read(input_path)?;
-            let key = std::fs::read(key_path)?;
+            // Setup buffered reader and writer
+            let input_file = File::open(input_path)?;
+            let input_length = input_file.metadata()?.len() as usize;
+            let mut buf_reader = BufReader::new(input_file);
 
+            let output_file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(output_path)?;
+            let mut buf_writer = BufWriter::new(output_file);
+
+            // Read in key
+            let key = std::fs::read(key_path)?;
             if key.len() < 128 {
                 return Err(Error::KeyTooShort(key.len()));
             }
 
-            crypto::decrypt(&mut data, &key, rounds);
-
-            std::fs::write(output_path, data)?;
+            // Decrypt in chunks
+            crypto::decrypt(&mut buf_reader, input_length, &mut buf_writer, &key, rounds)?;
 
             info!("Finished in {} ms", instant.elapsed().as_millis());
 
