@@ -57,7 +57,7 @@ fn run() -> Result<()> {
             // Encrypt in chunks
             crypto::encrypt(&mut buf_reader, input_length, &mut buf_writer, &key, rounds)?;
 
-            info!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {:?}", instant.elapsed());
 
             Ok(())
         }
@@ -92,7 +92,7 @@ fn run() -> Result<()> {
             // Decrypt in chunks
             crypto::decrypt(&mut buf_reader, input_length, &mut buf_writer, &key, rounds)?;
 
-            info!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {:?}", instant.elapsed());
 
             Ok(())
         }
@@ -109,7 +109,7 @@ fn run() -> Result<()> {
 
             std::fs::write(output, key)?;
 
-            info!("Finished in {} ms", instant.elapsed().as_millis());
+            info!("Finished in {:?}", instant.elapsed());
 
             Ok(())
         }
